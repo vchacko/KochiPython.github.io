@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Kochi Python, ">
+
+
+        <title>Inheritance for better exception handling // Kochi Python // </title>
+
+
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.3.0/pure-min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./theme/css/pure.css">
+    <link rel="stylesheet" href="./theme/css/pygments.css">
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/fitvids/1.0.1/jquery.fitvids.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $(".content").fitVids();
+        });
+    </script>
+</head>
+
+<body>
+<div class="pure-g-r" id="layout">
+    <div class="sidebar sidebar-article pure-u">
+        <header class="header-article">
+            <hgroup>
+                <a href="./author/varghese-chacko.html" title="See posts by Varghese Chacko">
+                        <img class="avatar" alt="Varghese Chacko" src="http://www.gravatar.com/avatar/50bef545cb48aab9f4bf7301627ee6a0">
+                </a>
+                <h2 class="article-info">Varghese Chacko</h2>
+                <small class="about-author">Just another Python/Perl Hacker</small>
+                <h5>Published</h5>
+                <p>Tue 25 November 2014</p>
+                <a href="/">&larr;Home</a>
+            </hgroup>
+        </header>
+    </div>
+    <div class="pure-u max-width">
+        <div class="content">
+            <section class="post">
+                <header class="post-header">
+                    <h1>Inheritance for better exception handling</h1>
+                        <p class="post-meta">
+                            // under                                 <a class="post-category" href="./tag/python.html">python</a>
+                                <a class="post-category" href="./tag/exception-handling.html">exception handling</a>
+                        </p>
+                </header>
+            </section>
+            <p>In most programming languages that supports exception handling, the base class for all exceptions are called <code>Exception</code>. Let me explain a scenario I recently used. This article uses Python sample codes.</p>
+<p>We have two famous e-commerce sites, Amazon and eBay. Assume that we are building a site from which users can buy items from both Amazon and eBay. So the use-case is</p>
+<ol>
+    <li>The user comes to our site to buy an iPhone 5</li>
+    <li>The user types in the search term iPhone 5 in the search box and hit search</li>
+    <li>He/she gets a list of iPhones from both Amazon and eBay</li>
+    <li>He/she click "Buy" button on an iPone listed and checkout the iPhone</li>
+</ol>
+
+<p>Here we are going to focus on step #2, the search. Our search program uses API provided by eBay to search eBay and API by Amazon to search Amazon. If iPhones are there on both sites, well and good.</p>
+<p>Suppose the iPhone is not available for sale on eBay, It will raise/throw an exception <code>NotFoundOnEbay</code>. A typical definition of the class would be</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">NotFoundOnEbay</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="c"># some code to handle eBay exception</span>
+    <span class="k">pass</span>
+</pre></div>
+
+
+<p>When iPone is not available on Amazon, we would like to raise <code>NotFoundOnAmazon</code>. A typical definition of the class would be</p>
+<div class="highlight"><pre><span class="k">class</span> <span class="nc">NotFoundOnAmazon</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="c"># some code to handle Amazon exception</span>
+    <span class="k">pass</span>
+</pre></div>
+
+
+<p>Assume that we have modules that we made namely <code>eBay</code> which rises <code>NotFoundOnEbay</code> and <code>Amazon</code> which rises <code>NotFoundOnAmazon</code>.</p>
+<p>We may write a class like this to search our site.</p>
+<div class="highlight"><pre><span class="kn">import</span> <span class="nn">eBay</span>
+<span class="kn">import</span> <span class="nn">Amazon</span>
+
+<span class="k">class</span> <span class="nc">SearchOnWebsites</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keywords</span><span class="p">):</span>
+        <span class="n">ebay_results</span> <span class="o">=</span> <span class="n">eBay</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">()</span>
+        <span class="n">amazon_results</span> <span class="o">=</span> <span class="n">Amazon</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span><span class="o">.</span><span class="n">search</span><span class="p">()</span>
+</pre></div>
+
+
+<p>then in our main program, we may have</p>
+<div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">SearchOnWebsites</span><span class="p">()</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">process_not_found_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Here <code>process_not_found_exception</code> knows how to handle the exceptions raised by Not Found errors. Its considered to be leaning towards sloppy as the except block will catch all exceptions and <code>process_not_found_exception</code> may cause exceptions if it receives some exception that it cant handle. A solution would be</p>
+<div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">SearchOnWebsites</span><span class="p">()</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="n">NotFoundOnAmazon</span><span class="p">:</span>
+    <span class="n">process_not_found_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="n">NotFoundOnEbay</span><span class="p">:</span>
+    <span class="n">process_not_found_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">process_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+
+
+<p>OR</p>
+<div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="n">SearchOnWebsites</span><span class="p">()</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="p">(</span><span class="n">NotFoundOnAmazon</span><span class="p">,</span> <span class="n">NotFoundOnEbay</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">process_not_found_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="n">process_exception</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Here we assume that <code>process_exception</code> handles all non-specific exceptions.</p>
+<p>The except tree/list will grow whenever we add another e-commerce site and if we have fifteen of them, how will it look?</p>
+<p>Here is a fix by defining a base class for all exceptions we catch. </p>
+<div class="highlight"><pre><span class="c"># Base class for all not for found with vendor exception</span>
+
+<span class="k">class</span> <span class="nc">ItemNotAvailableWithVendors</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+<span class="c"># Item not available with Amazon</span>
+
+<span class="k">class</span> <span class="nc">NotFoundOnAmazon</span><span class="p">(</span><span class="n">ItemNotAvailableWithVendors</span> <span class="p">):</span>
+    <span class="c"># some code to handle Amazon exception</span>
+    <span class="k">pass</span>
+
+
+<span class="c"># Item not available with eBay</span>
+
+<span class="k">class</span> <span class="nc">NotFoundOnEbay</span><span class="p">(</span><span class="n">ItemNotAvailableWithVendors</span> <span class="p">):</span>
+    <span class="c"># some code to handle eBayexception</span>
+    <span class="k">pass</span>
+</pre></div>
+
+
+<p>then we change our code to</p>
+<div class="highlight"><pre><span class="k">try</span><span class="o">:</span>
+    <span class="n">SearchOnWebsites</span><span class="o">().</span><span class="n">search</span><span class="o">(</span><span class="n">keywords</span><span class="o">)</span>
+
+<span class="n">except</span> <span class="n">ItemNotAvailableWithVendors</span> <span class="k">as</span> <span class="n">e</span><span class="o">:</span>
+    <span class="n">process_not_found_exception</span><span class="o">(</span><span class="n">e</span><span class="o">)</span>
+
+<span class="n">except</span> <span class="n">Exception</span><span class="o">:</span>
+    <span class="n">process_exception</span><span class="o">(</span><span class="n">e</span><span class="o">)</span>
+</pre></div>
+
+
+<p>The fact is that we can raise an exception (child class) and can catch it with its parent, but the exception we got will be the instance of child class we actually raised and hence handle them properly. </p>
+<p>If it raised <code>NotFoundOnAmazon</code> we get the instance of <code>NotFoundOnAmazon</code> and if it raised <code>NotFoundOnEbay</code> we get instance of  <code>NotFoundOnEbay</code> and so on and will be caught as <code>ItemNotAvailableWithVendors</code>. Experts in other languages may try this scenario for their language and put as comment.</p>
+<p>Note: This article was originally posted at <a href="http://www.onlinetoolbag.com/blog/using-inheritance-for-better-exception-handling">www.onlinetoolbag.com</a> by author.</p>
+            <div class="hr"></div>
+            <a href="#" class="go-top">Go Top</a>
+<div class="comments">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = "kochipython"; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div><footer class="footer">
+    <p>&copy; Kochi Python &ndash;
+        Built with <a href="https://github.com/PurePelicanTheme/pure">Pure Theme</a>
+        for <a href="http://blog.getpelican.com/">Pelican</a>
+    </p>
+</footer>        </div>
+    </div>
+</div>
+    <script>
+        var $top = $('.go-top');
+
+        // Show or hide the sticky footer button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 200) {
+                $top.fadeIn(200);
+            } else {
+                $top.fadeOut(200);
+            }
+        });
+
+        // Animate the scroll to top
+        $top.click(function(event) {
+            event.preventDefault();
+            $('html, body').animate({scrollTop: 0}, 300);
+        })
+
+        // Makes sure that the href="#" attached to the <a> elements
+        // don't scroll you back up the page.
+        $('body').on('click', 'a[href="#"]', function(event) {
+            event.preventDefault();
+        });
+    </script>
+    <script type="text/javascript">
+        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript">
+        try {
+            var pageTracker = _gat._getTracker("UA-56551965-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+    </script>
+</body>
+</html>
